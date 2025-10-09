@@ -23,9 +23,7 @@ def make_counter():
     def remove_back_data(id):
         nonlocal data_storage
         list_back = data_storage[f"back{id}"]
-        list_back.reverse()
         list_back.pop(0)
-        list_back.reverse()
         data_storage[f"back{id}"] = list_back 
         print(f"removeback {data_storage}")
 #Функции получения данных
@@ -40,7 +38,7 @@ def make_counter():
         return data_storage[f"{id}"]
 
     def give_back_data(id): 
-        nonlocal data_storage
+        nonlocal data_storage 
         print(f"back {data_storage}")
         return data_storage[f"back{id}"]
     return save_data_default, give_data_default, save_data, give_data, add_back_data, give_back_data, remove_back_data

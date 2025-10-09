@@ -11,7 +11,6 @@ import app.keyboards as kb
 import app.config as cfg
 from app.database.database import jsons
 import app.models.image.creatimage as image
-import app.text as txt
 import app.closure as func
 
 router = Router()
@@ -70,34 +69,13 @@ async def message(callback: CallbackQuery, bot: Bot):
     number_text = callback.data[5:]
     number_text_verif = callback.data[5:]
     datas = give_back_data(user_id)
-    datas.reverse()
-
-    if len(datas) == 2 and number_text_verif == "":
-        datas = give_data_default(user_id)
-        number_text = None
-
-    elif len(datas) == 1 and number_text_verif == "":
-        await bot.delete_message(user_id, callback.message.message_id)
-        await callback.message.answer(text="Меню", reply_markup=kb.start_menu)
-        remove_back_data(user_id)
-        return
-
-    elif number_text_verif == "":
-        print(datas)
-        datas = datas[0]
-
-    elif number_text_verif != "" and len(datas) > 2:
-        datas = datas[1]
-        remove_back_data(user_id)
-
-    else:
-        datas = datas[1]
-
+        
+    datas = datas[1]
 
     
-        
-
     keyb = await kb.json_one(datas, save_data, user_id, number_text)
+    add_back_data(user_id, datas)
+    remove_back_data(user_id)
     
     
     await callback.message.edit_text(f"{give_data(callback.from_user.id)}", reply_markup=keyb)

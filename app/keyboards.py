@@ -22,20 +22,19 @@ async def json_one(data, save_data, id_user, number_text):
     if number_text != None:
         if number_text.startswith("dir_"):
             print(data)
-            data = data[number_text][1]
-
+            
         elif number_text.startswith("text_"):
             return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Назад", callback_data=f"back_")]]), data[f'{number_text}']
         
     for i in data.items():
         if i[0].startswith("dir_"):
             dir.append(i[0])
-            button_for_index[f"dir_{str(x)}"] = i
+            button_for_index[f"dir_{list(i.items)[0]}"] = i
             x += 1
 
         elif i[0].startswith("text_"):
             file.append(i[0])
-            button_for_index[f"text_{str(y)}"] = i   
+            button_for_index[f"text_{i[0]}"] = i   
             y += 1     
 
 
@@ -47,7 +46,8 @@ async def json_one(data, save_data, id_user, number_text):
     for x, i in enumerate(file):
         keyb.append([InlineKeyboardButton(text=f"📔 {i[5:]}", callback_data=f"text_{x}")])
 
-    keyb.append([InlineKeyboardButton(text="🔙 Назад", callback_data=f"back_{list(data_clear.keys())[0]}")])
+    print(data_clear)
+    keyb.append([InlineKeyboardButton(text="🔙 Назад", callback_data=f"back_{number_text}")])
 
     keybord = InlineKeyboardMarkup(inline_keyboard=keyb) #Список с файлами и папками
     return keybord
