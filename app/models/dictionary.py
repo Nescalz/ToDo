@@ -1,8 +1,4 @@
 def find_index(data: dict, index: int, prefix: str) -> dict:
-    print(11123)
-    print(data)
-    print(index)
-    print(prefix)
     """
     Ищет в словаре data ключ, который начинается с prefix + индекс,
     например prefix="dir", index=2 -> ищем ключ начинающийся с "dir2".
@@ -19,6 +15,29 @@ def find_index(data: dict, index: int, prefix: str) -> dict:
             if result:
                 return result
     return None
+
+def find_parent_index(data: dict, target_index: int, kind: str):
+    target_prefix = f"{kind}{target_index}_"
+    
+    def recurse(curr: dict, parent_key: str = None):
+        for key, value in curr.items():
+            if key.startswith(target_prefix):
+                if parent_key is None:
+                    return None
+                if parent_key.startswith("dir"):
+                    try:
+                        return int(parent_key[len("dir"):].split("_",1)[0])
+                    except:
+                        return None
+                return None
+            if key.startswith("dir") and isinstance(value, dict):
+                res = recurse(value, key)
+                if res is not None:
+                    return res
+        return None
+    
+    return recurse(data)
+
 
 #Тест функция
 def build_paths(data: dict):

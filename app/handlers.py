@@ -69,18 +69,13 @@ async def message(callback: CallbackQuery, state: FSMContext):
 async def message(callback: CallbackQuery, bot: Bot):
     await callback.answer()
     user_id = callback.from_user.id
-    number_text = callback.data[5:]
-    number_text_verif = callback.data[5:]
-    datas = give_back_data(user_id)
-        
-    datas = datas[1]
+    number_text = callback.data.split("_")[2]
+    types = callback.data.split("_")[1]
+    data = loads(await jsons(user_id))
 
+    number_text = dict_func.find_parent_index(data, number_text, types)
     
-    keyb = await kb.json_one(datas, save_data, user_id, number_text)
-    add_back_data(user_id, datas)
-    remove_back_data(user_id)
+    keyb = await kb.json_one(data, f"dir{number_text}")
     
-    
-    await callback.message.edit_text(f"{give_data(callback.from_user.id)}", reply_markup=keyb)
-    print(number_text_verif) 
+    await callback.message.edit_text(f"{data}", reply_markup=keyb)
 
