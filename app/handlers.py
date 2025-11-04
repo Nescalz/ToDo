@@ -44,13 +44,13 @@ async def message(callback: CallbackQuery, state: FSMContext):
 
     await callback.message.edit_text(f"Ваши папки и заметки.\n{result}", reply_markup=keyb)
 
-@router.callback_query(F.data.startswith("text_"))
+@router.callback_query(F.data.startswith("text"))
 async def message(callback: CallbackQuery, state: FSMContext):
     user_id = callback.from_user.id
-    number_text = callback.data[5:]
+    number_text = callback.data[4:]
     await callback.answer()
 
-    keyb, text = await kb.json_one(give_data(user_id), save_data, user_id, f"text_{number_text}")
+    keyb = await kb.json_one(give_data(user_id), save_data, user_id, f"text{number_text}")
 
     await callback.message.edit_text(f"{text}", reply_markup=keyb) 
  
@@ -70,10 +70,9 @@ async def message(callback: CallbackQuery, bot: Bot):
     await callback.answer()
     user_id = callback.from_user.id
     number_text = callback.data.split("_")[2]
-    types = callback.data.split("_")[1]
     data = loads(await jsons(user_id))
 
-    number_text = dict_func.find_parent_index(data, number_text, types)
+    number_text = dict_func.find_parent_index(data, number_text, "dir")
     
     keyb = await kb.json_one(data, f"dir{number_text}")
     

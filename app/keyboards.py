@@ -17,12 +17,10 @@ async def json_one(data, number_text):
     elif number_text.startswith("dir"):
         number_text = number_text[3:]
         data = dict_func.find_index(data, number_text, "dir")
-        types = "dir"
 
     elif number_text.startswith("text"):
         number_text = number_text[4:]
         data = dict_func.find_index(data, number_text, "text")
-        types = "text"
 
     print(data)
     data_key = next(iter(data))
