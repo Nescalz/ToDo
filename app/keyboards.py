@@ -7,7 +7,6 @@ start_menu = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="�
                                               [InlineKeyboardButton(text="Задачи", callback_data="tasks")],
                                               [InlineKeyboardButton(text="Настройка", callback_data="settings")]])
 
-
 async def json_one(data, number_text):
     keyb = [[InlineKeyboardButton(text="📂 Добавить папку", callback_data="add_dirs")],
             [InlineKeyboardButton(text="📔 Добавить заметку", callback_data="add_txt")]]
