@@ -9,7 +9,6 @@ start_menu = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="�
 
 
 async def json_one(data, number_text):
-    types = ""
     keyb = [[InlineKeyboardButton(text="📂 Добавить папку", callback_data="add_dirs")],
             [InlineKeyboardButton(text="📔 Добавить заметку", callback_data="add_txt")]]
     if number_text == None:
@@ -18,11 +17,6 @@ async def json_one(data, number_text):
         number_text = number_text[3:]
         data = dict_func.find_index(data, number_text, "dir")
 
-    elif number_text.startswith("text"):
-        number_text = number_text[4:]
-        data = dict_func.find_index(data, number_text, "text")
-
-    print(data)
     data_key = next(iter(data))
     data = data[data_key]
 
@@ -44,9 +38,22 @@ async def json_one(data, number_text):
         keyb.append([InlineKeyboardButton(text=f"📂 {v}", callback_data=f"dir{k}")])
 
     for k, v in file.items():
-        keyb.append([InlineKeyboardButton(text=f"📔 {v}", callback_data=f"text{k}")])
+        keyb.append([InlineKeyboardButton(text=f"📄 {v}", callback_data=f"text{k}")])
 
-    keyb.append([InlineKeyboardButton(text="🔙 Назад", callback_data=f"back_text_{number_text}")])
+    keyb.append([InlineKeyboardButton(text="🔙 Назад", callback_data=f"back_{number_text}_dir")])
 
-    keybord = InlineKeyboardMarkup(inline_keyboard=keyb) #Список с файлами и папками
+    keybord = InlineKeyboardMarkup(inline_keyboard=keyb) 
     return keybord
+
+async def text_view(data, number_text):
+    data = dict_func.find_index(data, number_text, "text")
+
+    data_key = next(iter(data))
+    text = data[data_key]
+
+    keyb = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="✍️ Редактировать", callback_data=f"edit_{number_text}")],
+            [InlineKeyboardButton(text="❌ Удалить", callback_data=f"delete_{number_text}")],
+            [InlineKeyboardButton(text="🔙 Назад", callback_data=f"back_{number_text}_text")]
+            ])
+    return keyb, text
