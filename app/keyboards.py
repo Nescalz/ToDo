@@ -7,9 +7,12 @@ start_menu = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="�
                                               [InlineKeyboardButton(text="Задачи", callback_data="tasks")],
                                               [InlineKeyboardButton(text="Настройка", callback_data="settings")]])
 
+yes_or_no = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Да", callback_data="yes")], 
+                                              [InlineKeyboardButton(text="Нет", callback_data="no")]])
+
 async def json_one(data, number_text):
-    keyb = [[InlineKeyboardButton(text="📂 Добавить папку", callback_data="add_dirs")],
-            [InlineKeyboardButton(text="📔 Добавить заметку", callback_data="add_txt")]]
+    keyb = [[InlineKeyboardButton(text="📂 Добавить папку", callback_data=f"adddirs_{number_text}")],
+            [InlineKeyboardButton(text="📔 Добавить заметку", callback_data=f"addtxt_{number_text}")]]
     if number_text == None:
         pass
     elif number_text.startswith("dir"):
@@ -39,7 +42,8 @@ async def json_one(data, number_text):
     for k, v in file.items():
         keyb.append([InlineKeyboardButton(text=f"📄 {v}", callback_data=f"text{k}")])
 
-    keyb.append([InlineKeyboardButton(text="🔙 Назад", callback_data=f"back_{number_text}_dir")])
+    keyb.append([InlineKeyboardButton(text="🗑 Удалить папку", callback_data=f"deletedir_{number_text}")],
+        [InlineKeyboardButton(text="🔙 Назад", callback_data=f"back_{number_text}_dir")])
 
     keybord = InlineKeyboardMarkup(inline_keyboard=keyb) 
     return keybord

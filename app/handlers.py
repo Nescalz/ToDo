@@ -18,9 +18,9 @@ router = Router()
 
 save_data_default, give_data_default, save_data, give_data, add_back_data, give_back_data, remove_back_data = func.make_counter() #Создаем хранилище временных файлов для пользователя
 
-class reg(StatesGroup):
-    message = State()
-    number = State()
+class Delete(StatesGroup):
+    type = State()
+    yes_or_no = State()
     
 
 @router.message(CommandStart())
@@ -80,3 +80,43 @@ async def message(callback: CallbackQuery, bot: Bot):
     
     await callback.message.edit_text(f"{data}", reply_markup=keyb)
 
+@router.callback_query(F.data.startswith("edit_"))
+async def message(callback: CallbackQuery, bot: Bot):
+    await callback.answer()
+    user_id = callback.from_user.id
+    number_text = callback.data.split("_")[1]
+
+
+
+@router.callback_query(F.data.startswith("delete_"))
+async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):
+    await callback.answer()
+    user_id = callback.from_user.id
+    await state.update_data(state=Delete.type, type=callback.data)  
+    await callback.message.edit_text(f"Вы уверены?\nДанные о файлах в папке не сохранятся!", reply_markup=kb.yes_or_no)
+
+@router.callback_query(Delete.type)
+async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):
+    await callback.answer()
+    user_id = callback.from_user.id
+    await state.update_data(state=Delete.type, type=callback.data)  
+    await callback.message.edit_text(f"Вы уверены?\nДанные о файлах в папке не сохранятся!", reply_markup=kb.yes_or_no)
+
+
+@router.callback_query(F.data.startswith("deletedir_"))
+async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):
+    await callback.answer()
+    user_id = callback.from_user.id
+    number_text = callback.data.split("_")[1]
+
+@router.callback_query(F.data.startswith("adddirs_"))
+async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):
+    await callback.answer()
+    user_id = callback.from_user.id
+    number_text = callback.data.split("_")[1]
+
+@router.callback_query(F.data.startswith("addtxt_"))
+async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):
+    await callback.answer()
+    user_id = callback.from_user.id
+    number_text = callback.data.split("_")[1]
