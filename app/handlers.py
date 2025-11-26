@@ -9,7 +9,7 @@ from json import loads
 
 import app.keyboards as kb
 import app.config as cfg
-from app.models.database import jsons
+import app.models.database as db
 import app.models.image.creatimage as image
 import app.closure as func
 
@@ -34,7 +34,7 @@ async def message(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     id_user = callback.from_user.id
 
-    result = loads(await jsons(id_user)) #Превращяем список из бд в JSON
+    result = loads(await db.jsons(id_user)) #Превращяем список из бд в JSON
 
     save_data_default(id_user, result) #Сохраняем изначальный путь
 
@@ -49,7 +49,7 @@ async def message(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     user_id = callback.from_user.id
     number_text = callback.data[4:]
-    data = loads(await jsons(user_id))
+    data = loads(await db.jsons(user_id))
 
     keyb, text = await kb.text_view(data, f"{number_text}")
 
@@ -61,7 +61,7 @@ async def message(callback: CallbackQuery, state: FSMContext):
     user_id = callback.from_user.id
     number_text = callback.data.split("_", maxsplit=1)[0][3:]
     
-    data = loads(await jsons(user_id))
+    data = loads(await db.jsons(user_id))
     keyb = await kb.json_one(data, f'dir{number_text}')
 
     await callback.message.edit_text(f"{data}", reply_markup=keyb) 
@@ -71,7 +71,7 @@ async def message(callback: CallbackQuery, bot: Bot):
     await callback.answer()
     user_id = callback.from_user.id
     number_text = callback.data.split("_")[1]
-    data = loads(await jsons(user_id))
+    data = loads(await db.jsons(user_id))
     if callback.data.split("_")[2] == "text":
         number_text = dict_func.find_parent_index(data, number_text, "text")
     else:
@@ -91,23 +91,55 @@ async def message(callback: CallbackQuery, bot: Bot):
 @router.callback_query(F.data.startswith("delete_"))
 async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):
     await callback.answer()
-    user_id = callback.from_user.id
-    await state.update_data(state=Delete.type, type=callback.data)  
-    await callback.message.edit_text(f"Вы уверены?\nДанные о файлах в папке не сохранятся!", reply_markup=kb.yes_or_no)
-
-@router.callback_query(Delete.type)
-async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):
-    await callback.answer()
-    user_id = callback.from_user.id
-    await state.update_data(state=Delete.type, type=callback.data)  
-    await callback.message.edit_text(f"Вы уверены?\nДанные о файлах в папке не сохранятся!", reply_markup=kb.yes_or_no)
-
+    number_text = callback.data.split("_")[1]
+    await callback.message.edit_text(f"*Вы уверены?*\nДанные о тексте восстановить не получится!", reply_markup=kb.yes_or_no(number_text, "text"), parse_mode="MarkDown")
 
 @router.callback_query(F.data.startswith("deletedir_"))
 async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):
     await callback.answer()
     user_id = callback.from_user.id
     number_text = callback.data.split("_")[1]
+    await callback.message.edit_text(f"*Вы уверены?*\nДанные и текста в папке полностью будут удалены!", reply_markup=kb.yes_or_no(number_text, "dir"), parse_mode="MarkDown")
+
+@router.callback_query(F.data == "no")
+async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):
+    await callback.answer()
+    number_text = callback.data.split("_")[1]
+    number_type = callback.data.split("_")[2]
+    user_id = callback.from_user.id
+    data = loads(await db.jsons(user_id))
+
+    if number_type == "text":
+        keyb, text = await kb.text_view(data, f"{number_text}")
+    elif number_type == "dir":
+        text = ""
+        keyb = await kb.json_one(data, f'dir{number_text}')
+
+    await callback.message.edit_text(text, reply_markup=keyb)
+
+@router.callback_query(F.data == "yes")
+async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):
+    await callback.answer()
+    number_text = callback.data.split("_")[1]
+    number_type = callback.data.split("_")[2]
+    user_id = callback.from_user.id
+    data = loads(await db.jsons(user_id))
+
+    if number_type == "text":
+        new_data = dict_func.remove_by_type_index(data, number_text, "text")
+        await db.new_data_reset(user_id, new_data)
+        text = ""
+        number_text = dict_func.find_parent_index(data, number_text, "text")
+        
+    elif number_type == "dir":
+        new_data = dict_func.remove_by_type_index(data, number_text, "dir")
+        await db.new_data_reset(user_id, new_data)
+        text = ""
+        number_text = dict_func.find_parent_index(data, number_text, "dir")
+
+    keyb = await kb.json_one(data, f'dir{number_text}')
+    await callback.message.edit_text(text, reply_markup=keyb)
+
 
 @router.callback_query(F.data.startswith("adddirs_"))
 async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):

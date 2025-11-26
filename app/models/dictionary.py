@@ -38,6 +38,25 @@ def find_parent_index(data: dict, target_index: int, kind: str):
     
     return recurse(data)
 
+def remove_by_type_index(data: dict, target_index: int, target_type: str) -> dict:
+    """
+    Возвращает новую структуру, где удалены все элементы, ключ которых начинается
+    с f"{target_type}{target_index}_".
+    """
+    result = {}
+    prefix = f"{target_type}{target_index}_"
+    for key, value in data.items():
+        if key.startswith(prefix):
+            continue
+
+        if isinstance(value, dict):
+            cleaned = remove_by_type_index(value, target_type, target_index)
+
+            if cleaned:
+                result[key] = cleaned
+        else:
+            result[key] = value
+    return result
 
 #Тест функция
 def build_paths(data: dict):

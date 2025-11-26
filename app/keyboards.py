@@ -7,15 +7,16 @@ start_menu = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="�
                                               [InlineKeyboardButton(text="Задачи", callback_data="tasks")],
                                               [InlineKeyboardButton(text="Настройка", callback_data="settings")]])
 
-yes_or_no = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Да", callback_data="yes")], 
-                                              [InlineKeyboardButton(text="Нет", callback_data="no")]])
+def yes_or_no(number_text, type):
+    return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Да", callback_data=f"yes_{number_text}_{"text" if type == "text" else "dir"}")], 
+                                              [InlineKeyboardButton(text="Нет", callback_data=f"no_{number_text}_{"text" if type == "text" else "dir"}")]])
 
 async def json_one(data, number_text):
     keyb = [[InlineKeyboardButton(text="📂 Добавить папку", callback_data=f"adddirs_{number_text}")],
             [InlineKeyboardButton(text="📔 Добавить заметку", callback_data=f"addtxt_{number_text}")]]
     if number_text == None:
         pass
-    elif number_text.startswith("dir"):
+    elif number_text.startswith("dir"): #Dir - не уникальный интендификатор, служит заглушкой, чтобы было != None
         number_text = number_text[3:]
         data = dict_func.find_index(data, number_text, "dir")
 
@@ -42,8 +43,8 @@ async def json_one(data, number_text):
     for k, v in file.items():
         keyb.append([InlineKeyboardButton(text=f"📄 {v}", callback_data=f"text{k}")])
 
-    keyb.append([InlineKeyboardButton(text="🗑 Удалить папку", callback_data=f"deletedir_{number_text}")],
-        [InlineKeyboardButton(text="🔙 Назад", callback_data=f"back_{number_text}_dir")])
+    keyb.append([InlineKeyboardButton(text="🗑 Удалить папку", callback_data=f"deletedir_{number_text}")])
+    keyb.append([InlineKeyboardButton(text="🔙 Назад", callback_data=f"back_{number_text}_dir")])
 
     keybord = InlineKeyboardMarkup(inline_keyboard=keyb) 
     return keybord
