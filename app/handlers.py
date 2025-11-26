@@ -125,20 +125,13 @@ async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):
     user_id = callback.from_user.id
     data = loads(await db.jsons(user_id))
 
-    if number_type == "text":
-        new_data = dict_func.remove_by_type_index(data, number_text, "text")
-        await db.new_data_reset(user_id, new_data)
-        text = ""
-        number_text = dict_func.find_parent_index(data, number_text, "text")
-        
-    elif number_type == "dir":
-        new_data = dict_func.remove_by_type_index(data, number_text, "dir")
-        await db.new_data_reset(user_id, new_data)
-        text = ""
-        number_text = dict_func.find_parent_index(data, number_text, "dir")
 
-    keyb = await kb.json_one(data, f'dir{number_text}')
-    await callback.message.edit_text(text, reply_markup=keyb)
+    new_data = dict_func.remove_by_type_index(data, number_text, number_type)
+    number_text = dict_func.find_parent_index(data, number_text, number_type)
+
+    await db.new_data_reset(user_id, new_data)
+    keyb = await kb.json_one(data, f'dir{number_text}') #dir, потому что всегда тип прошлой структуры равен папке
+    await callback.message.edit_text("text", reply_markup=keyb) #text - заглушка
 
 
 @router.callback_query(F.data.startswith("adddirs_"))
