@@ -18,10 +18,13 @@ router = Router()
 
 save_data_default, give_data_default, save_data, give_data, add_back_data, give_back_data, remove_back_data = func.make_counter() #Создаем хранилище временных файлов для пользователя
 
-class Delete(StatesGroup):
-    type = State()
-    yes_or_no = State()
-    
+class Add_text(StatesGroup):
+    number_text = State()
+    name = State()
+    text = State()
+
+class Add_dir(StatesGroup):
+    name = State()
 
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
@@ -86,8 +89,7 @@ async def message(callback: CallbackQuery, bot: Bot):
     user_id = callback.from_user.id
     number_text = callback.data.split("_")[1]
 
-
-
+#В код ревью стоит объеденить delete и deletedir в один слушатель
 @router.callback_query(F.data.startswith("delete_"))
 async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):
     await callback.answer()
@@ -134,14 +136,27 @@ async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):
     await callback.message.edit_text("text", reply_markup=keyb) #text - заглушка
 
 
-@router.callback_query(F.data.startswith("adddirs_"))
+@router.callback_query(F.data.startswith("add_"))
 async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):
     await callback.answer()
+    data = loads(await db.jsons(user_id))
     user_id = callback.from_user.id
-    number_text = callback.data.split("_")[1]
+    number_type = callback.data.split("_")[1]
+    number_text = callback.data.split("_")[2]
+    await state.update_data(number_text=number_text)
+    if number_type == "text": 
+        await state.set_state(Add_text.name)
+        await callback.message.edit_text("Введите название заметки", reply_markup=kb.cancel(number_text))
+    elif number_type == "dir":
+        await state.set_state(Add_dir.name)
+        await callback.message.edit_text("Введите название папки", reply_markup=kb.cancel(number_text))
 
-@router.callback_query(F.data.startswith("addtxt_"))
-async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):
-    await callback.answer()
-    user_id = callback.from_user.id
-    number_text = callback.data.split("_")[1]
+@router.callback_query(Add_text.name)
+async def message(message: Message, bot: Bot, state: FSMContext):
+    await state.update_data(name=message.text)
+    await state.set_state(Add_text.text)
+    await message.answer("Что хотите записать в заметку?\nВы можете использовать все символы кроме специальных символов и скобок.", reply_markup=kb.cancel(number_text)) 
+
+@router.callback_query(Add_text.text)
+async def message(message: Message, bot: Bot, state: FSMContext):
+    pass

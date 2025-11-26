@@ -58,6 +58,55 @@ def remove_by_type_index(data: dict, target_index: int, target_type: str) -> dic
             result[key] = value
     return result
 
+def make_unique_key(existing_keys, prefix: str):
+    """
+    Сгенерировать ключ вида prefix + уникальное число, которого нет в existing_keys.
+    """
+    i = 0
+    while True:
+        key = f"{prefix}{i}"
+        if key not in existing_keys:
+            return key
+        i += 1
+
+def add_to_folder(data: dict, target_type: str, target_index: int,
+                  add_type: str, name: str, value=None) -> bool:
+    """
+    Ищет во вложенной структуре папку с ключом, начинающимся с f"{target_type}{target_index}_".
+    Если находит — добавляет туда:
+      - подпапку (если add_type == "dir"), пустую dict
+      - или текст (если add_type == "text"), ключ->value
+
+    Возвращает True, если вставка произошла, иначе False.
+    """
+    prefix = f"{target_type}{target_index}_"
+
+    for key, val in data.items():
+        if key.startswith(prefix):
+            # Found target folder — вставляем
+            if not isinstance(val, dict):
+                # несовместимо — не папка
+                return False
+            # генерируем уникальный ключ
+            existing = set(val.keys())
+            if add_type == "dir":
+                newkey = make_unique_key(existing, f"{target_type}")
+                val[newkey] = {}
+            elif add_type == "text":
+                newkey = make_unique_key(existing, f"{add_type}")
+                val[newkey] = value
+            else:
+                raise ValueError("add_type must be 'dir' or 'text'")
+            return True
+        else:
+            # если значение — dict, рекурсивно погружаемся
+            if isinstance(val, dict):
+                if add_to_folder(val, target_type, target_index, add_type, name, value):
+                    return True
+
+    return False
+
+
 #Тест функция
 def build_paths(data: dict):
     #Префиксы элементов словаря
