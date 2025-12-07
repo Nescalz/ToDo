@@ -62,7 +62,6 @@ async def text_view(data, number_text):
     text = data[data_key]
 
     keyb = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="✍️ Редактировать", callback_data=f"edit_{number_text}")],
             [InlineKeyboardButton(text="❌ Удалить", callback_data=f"delete_{number_text}")],
             [InlineKeyboardButton(text="🔙 Назад", callback_data=f"back_{number_text}_text")]
             ])

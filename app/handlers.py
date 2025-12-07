@@ -166,9 +166,18 @@ async def message(message: Message, bot: Bot, state: FSMContext):
     number_text = give_data(user_id)
     data = loads(await db.jsons(user_id))
 
+    await state.clear()
     data, index = dict_func.add_to_folder(data, number_text, "dir", message.text) #Сдеалть экранирование текста
     await message.answer("", reply_markup=kb.json_one(data, f'dir{index}')) 
+    
 
 @router.callback_query(Add_text.text)
 async def message(message: Message, bot: Bot, state: FSMContext):
-    pass
+    user_id = message.from_user.id
+    number_text = give_data(user_id)
+    data = loads(await db.jsons(user_id))
+
+    await state.clear()
+    data, index = dict_func.add_to_folder(data, number_text, "text", await state.get_data["name"], message.text)
+    kb.text_view(data, f'{index}')
+    await message.answer(message.text, reply_markup=kb.json_one(data, f'text{index}')) 
