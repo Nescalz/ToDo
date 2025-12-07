@@ -11,6 +11,9 @@ def yes_or_no(number_text, type):
     return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Да", callback_data=f"yes_{number_text}_{"text" if type == "text" else "dir"}")], 
                                               [InlineKeyboardButton(text="Нет", callback_data=f"no_{number_text}_{"text" if type == "text" else "dir"}")]])
 
+def back_in_addfolder(number_text):
+    return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Перейти в папку", callback_data=f"cancel_{number_text}")]])
+
 def cancel(number_text):
     return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Отмена", callback_data=f"cancel_{number_text}")]])
 

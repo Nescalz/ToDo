@@ -5,18 +5,22 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiosqlite import connect
 
+import re
+
 from json import loads
 
 import app.keyboards as kb
 import app.config as cfg
 import app.models.database as db
 import app.models.image.creatimage as image
-import app.closure as func
+import app.models.cleasure as func_data
 
 import app.models.dictionary as dict_func
 router = Router()
 
-save_data_default, give_data_default, save_data, give_data, add_back_data, give_back_data, remove_back_data = func.make_counter() #Создаем хранилище временных файлов для пользователя
+add_data, give_data = func_data.conteiner()
+
+has_special = re.compile("|".join(map(re.escape, ".,:;!_*-+()/#¤%&)"))).search
 
 class Add_text(StatesGroup):
     number_text = State()
@@ -37,9 +41,7 @@ async def message(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     id_user = callback.from_user.id
 
-    result = loads(await db.jsons(id_user)) #Превращяем список из бд в JSON
-
-    save_data_default(id_user, result) #Сохраняем изначальный путь
+    result = loads(await db.jsons(id_user)) #Превращяем список из бд в JSON  
 
     keyb = await kb.json_one(result, None) #Делаем кнопки по JSON разметке
 
@@ -139,23 +141,33 @@ async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):
 @router.callback_query(F.data.startswith("add_"))
 async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):
     await callback.answer()
-    data = loads(await db.jsons(user_id))
     user_id = callback.from_user.id
     number_type = callback.data.split("_")[1]
     number_text = callback.data.split("_")[2]
     await state.update_data(number_text=number_text)
     if number_type == "text": 
-        await state.set_state(Add_text.name)
         await callback.message.edit_text("Введите название заметки", reply_markup=kb.cancel(number_text))
     elif number_type == "dir":
-        await state.set_state(Add_dir.name)
         await callback.message.edit_text("Введите название папки", reply_markup=kb.cancel(number_text))
+    await state.set_state(Add_dir.name)
+    add_data(user_id, number_text)
 
 @router.callback_query(Add_text.name)
 async def message(message: Message, bot: Bot, state: FSMContext):
     await state.update_data(name=message.text)
     await state.set_state(Add_text.text)
+    user_id = message.from_user.id
+    number_text = give_data(user_id)
     await message.answer("Что хотите записать в заметку?\nВы можете использовать все символы кроме специальных символов и скобок.", reply_markup=kb.cancel(number_text)) 
+
+@router.callback_query(Add_dir.name) 
+async def message(message: Message, bot: Bot, state: FSMContext):
+    user_id = message.from_user.id
+    number_text = give_data(user_id)
+    data = loads(await db.jsons(user_id))
+
+    data, index = dict_func.add_to_folder(data, number_text, "dir", message.text) #Сдеалть экранирование текста
+    await message.answer("", reply_markup=kb.json_one(data, f'dir{index}')) 
 
 @router.callback_query(Add_text.text)
 async def message(message: Message, bot: Bot, state: FSMContext):

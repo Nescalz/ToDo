@@ -69,43 +69,51 @@ def make_unique_key(existing_keys, prefix: str):
             return key
         i += 1
 
-def add_to_folder(data: dict, target_type: str, target_index: int,
-                  add_type: str, name: str, value=None) -> bool:
+def add_to_folder(data: dict, parent_index: int, item_type: str, name, value={}):
     """
-    Ищет во вложенной структуре папку с ключом, начинающимся с f"{target_type}{target_index}_".
-    Если находит — добавляет туда:
-      - подпапку (если add_type == "dir"), пустую dict
-      - или текст (если add_type == "text"), ключ->value
-
-    Возвращает True, если вставка произошла, иначе False.
+    data         - словарь
+    parent_index - индекс папки-родителя (цифра после dir)
+    item_type    - "text" или "dir"
+    value        - значение для текста или пустого словаря для папки
+    name         - имя после префикса (dirX_name / textX_name)
     """
-    prefix = f"{target_type}{target_index}_"
+    parent_key = None
+    for key in data:
+        if key.startswith(f"dir{parent_index}_"):
+            parent_key = key
+            break
+    
+    if parent_key is None:
+        raise KeyError(f"Папка {parent_index} не найдена.")
+    
+    parent = data[parent_key]
 
-    for key, val in data.items():
+    prefix = "dir" if item_type == "dir" else "text"
+    
+    used_indexes = []
+    for key in parent.keys():
         if key.startswith(prefix):
-            # Found target folder — вставляем
-            if not isinstance(val, dict):
-                # несовместимо — не папка
-                return False
-            # генерируем уникальный ключ
-            existing = set(val.keys())
-            if add_type == "dir":
-                newkey = make_unique_key(existing, f"{target_type}")
-                val[newkey] = {}
-            elif add_type == "text":
-                newkey = make_unique_key(existing, f"{add_type}")
-                val[newkey] = value
-            else:
-                raise ValueError("add_type must be 'dir' or 'text'")
-            return True
-        else:
-            # если значение — dict, рекурсивно погружаемся
-            if isinstance(val, dict):
-                if add_to_folder(val, target_type, target_index, add_type, name, value):
-                    return True
+            num = ""
+            for ch in key[len(prefix):]:
+                if ch.isdigit():
+                    num += ch
+                else:
+                    break
+            if num.isdigit():
+                used_indexes.append(int(num))
 
-    return False
+    new_index = 0
+    while new_index in used_indexes:
+        new_index += 1
 
+    new_key = f"{prefix}{new_index}_{name}"
+
+    if item_type == "dir":
+        parent[new_key] = {}
+    elif item_type == "text":
+        parent[new_key] = value
+
+    return data, new_index
 
 #Тест функция
 def build_paths(data: dict):
