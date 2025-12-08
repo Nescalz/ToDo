@@ -168,6 +168,7 @@ async def message(message: Message, bot: Bot, state: FSMContext):
 
     await state.clear()
     data, index = dict_func.add_to_folder(data, number_text, "dir", message.text) #Сдеалть экранирование текста
+    await db.new_data_reset(user_id, data)
     await message.answer("", reply_markup=kb.json_one(data, f'dir{index}')) 
     
 
@@ -179,5 +180,6 @@ async def message(message: Message, bot: Bot, state: FSMContext):
 
     await state.clear()
     data, index = dict_func.add_to_folder(data, number_text, "text", await state.get_data["name"], message.text)
+    await db.new_data_reset(user_id, data)
     kb.text_view(data, f'{index}')
     await message.answer(message.text, reply_markup=kb.json_one(data, f'text{index}')) 
