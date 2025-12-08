@@ -40,23 +40,28 @@ def find_parent_index(data: dict, target_index: int, kind: str):
 
 def remove_by_type_index(data: dict, target_index: int, target_type: str) -> dict:
     """
-    Возвращает новую структуру, где удалены все элементы, ключ которых начинается
-    с f"{target_type}{target_index}_".
+    Удаляет из data все ключи (на любом уровне вложенности), 
+    которые начинаются с f"{target_type}{target_index}_".
+    Сохраняет остальные ключи + структуру.
     """
     result = {}
     prefix = f"{target_type}{target_index}_"
+    
     for key, value in data.items():
+        # если ключ с нужным префиксом — пропускаем
         if key.startswith(prefix):
             continue
 
+        # если значение — dict, рекурсивно очищаем
         if isinstance(value, dict):
-            cleaned = remove_by_type_index(value, target_type, target_index)
-
-            if cleaned:
-                result[key] = cleaned
+            result[key] = remove_by_type_index(value, target_index, target_type)
         else:
             result[key] = value
+
     return result
+
+
+
 
 def make_unique_key(existing_keys, prefix: str):
     """
@@ -69,51 +74,57 @@ def make_unique_key(existing_keys, prefix: str):
             return key
         i += 1
 
-def add_to_folder(data: dict, parent_index: int, item_type: str, name, value={}):
-    """
-    data         - словарь
-    parent_index - индекс папки-родителя (цифра после dir)
-    item_type    - "text" или "dir"
-    value        - значение для текста или пустого словаря для папки
-    name         - имя после префикса (dirX_name / textX_name)
-    """
-    parent_key = None
-    for key in data:
-        if key.startswith(f"dir{parent_index}_"):
-            parent_key = key
-            break
+def find_folder_dict(data: dict, target_index: int):
+    target_prefix = f"{target_index}"
+    print(target_prefix)
     
-    if parent_key is None:
-        raise KeyError(f"Папка {parent_index} не найдена.")
+    def recurse(curr: dict, path="root"):
+        for key, val in curr.items():
+            if key.startswith(target_prefix):
+                return val
+            if isinstance(val, dict):
+                found = recurse(val, f"{path}->{key}")
+                if found is not None:
+                    return found
+        return None
     
-    parent = data[parent_key]
+    return recurse(data)
 
-    prefix = "dir" if item_type == "dir" else "text"
-    
-    used_indexes = []
-    for key in parent.keys():
-        if key.startswith(prefix):
-            num = ""
-            for ch in key[len(prefix):]:
-                if ch.isdigit():
-                    num += ch
-                else:
-                    break
-            if num.isdigit():
-                used_indexes.append(int(num))
+
+
+def get_used_dir_indexes(node: dict, type):
+    """Рекурсивно собирает все индексы, которые уже заняты в ключах dirX_."""
+    used = set()
+    for key, val in node.items():
+        if key.startswith(type):
+            rest = key[len(type):]
+            if "_" in rest:
+                idx_str = rest.split("_", 1)[0]
+                if idx_str.isdigit():
+                    used.add(int(idx_str))
+        if isinstance(val, dict):
+            used.update(get_used_dir_indexes(val, type))
+    return used
+
+def add_to_folder(data: dict, parent_index: int, item_type: str, name, value={}):
+    parent = find_folder_dict(data, parent_index)
+    if parent is None:
+        raise KeyError(f"Папка {parent_index} не найдена.")
+
+    prefix = item_type
+
+    used_indexes = get_used_dir_indexes(data, item_type)
 
     new_index = 0
     while new_index in used_indexes:
         new_index += 1
 
     new_key = f"{prefix}{new_index}_{name}"
-
-    if item_type == "dir":
-        parent[new_key] = {}
-    elif item_type == "text":
-        parent[new_key] = value
+    print(new_key)
+    parent[new_key] = {} if item_type == "dir" else f"{value}"
 
     return data, new_index
+
 
 #Тест функция
 def build_paths(data: dict):

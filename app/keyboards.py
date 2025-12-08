@@ -17,7 +17,7 @@ def back_in_addfolder(number_text):
 def cancel(number_text):
     return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Отмена", callback_data=f"cancel_{number_text}")]])
 
-async def json_one(data, number_text):
+def json_one(data, number_text):
     keyb = [[InlineKeyboardButton(text="📂 Добавить папку", callback_data=f"add_dir_{number_text}")],
             [InlineKeyboardButton(text="📔 Добавить заметку", callback_data=f"add_text_{number_text}")]]
     if number_text == None:
@@ -25,7 +25,7 @@ async def json_one(data, number_text):
     elif number_text.startswith("dir"): #Dir - не уникальный интендификатор, служит заглушкой, чтобы было != None
         number_text = number_text[3:]
         data = dict_func.find_index(data, number_text, "dir")
-
+    print(data)
     data_key = next(iter(data))
     data = data[data_key]
 
@@ -49,8 +49,10 @@ async def json_one(data, number_text):
     for k, v in file.items():
         keyb.append([InlineKeyboardButton(text=f"📄 {v}", callback_data=f"text{k}")])
 
-    keyb.append([InlineKeyboardButton(text="🗑 Удалить папку", callback_data=f"deletedir_{number_text}")])
-    keyb.append([InlineKeyboardButton(text="🔙 Назад", callback_data=f"back_{number_text}_dir")])
+    
+    if number_text != "0":
+        keyb.append([InlineKeyboardButton(text="🗑 Удалить папку", callback_data=f"deletedir_{number_text}")])
+        keyb.append([InlineKeyboardButton(text="🔙 Назад", callback_data=f"back_{number_text}_dir")])
 
     keybord = InlineKeyboardMarkup(inline_keyboard=keyb) 
     return keybord
