@@ -15,8 +15,7 @@ CREATE TABLE IF NOT EXISTS Users (
 )
 ''')
 
-
-async def main():
+async def main():   
     bot = Bot(token=token)
     dp = Dispatcher()
     dp.include_router(router)

@@ -3,9 +3,7 @@ import app.models.dictionary as dict_func
 
 main = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Отменить заявку", callback_data="cancel")]])
 
-start_menu = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Заметки", callback_data="notes")], 
-                                              [InlineKeyboardButton(text="Задачи", callback_data="tasks")],
-                                              [InlineKeyboardButton(text="Настройка", callback_data="settings")]])
+start_menu = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Заметки", callback_data="notes")]])
 
 def yes_or_no(number_text, type):
     return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Да", callback_data=f"yes_{number_text}_{"text" if type == "text" else "dir"}")], 

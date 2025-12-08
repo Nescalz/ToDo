@@ -12,7 +12,6 @@ from json import loads
 import app.keyboards as kb
 import app.config as cfg
 import app.models.database as db
-import app.models.image.creatimage as image
 import app.models.cleasure as func_data
 
 import app.models.dictionary as dict_func
@@ -31,8 +30,6 @@ class Add_dir(StatesGroup):
 
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
-    photo = FSInputFile(f"{image.root_path}\\image\\new_valuts.jpg")
-    await message.answer_photo(caption="Доброго времени суток!\nЦены выше представлены к Рублю", photo=photo)
     await message.answer(text="Меню", reply_markup=kb.start_menu)
 
 @router.callback_query(F.data == "notes")
@@ -179,3 +176,12 @@ async def message(message: Message, bot: Bot, state: FSMContext):
     await db.new_data_reset(user_id, data)
     kb.text_view(data, f'{index}')
     await message.answer(message.text, reply_markup=kb.json_one(data, f'text{index}')) 
+
+@router.callback_query(F.data.startswith("cancel_"))
+async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):
+    await callback.answer()
+    user_id = callback.from_user.id
+    number_text = callback.data.split("_")[1]
+    data = loads(await db.jsons(user_id))
+    state.clear()
+    await callback.message.edit_text("Канкел", reply_markup=kb.json_one(data, number_text)) 
