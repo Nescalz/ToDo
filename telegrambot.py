@@ -4,7 +4,6 @@ from sqlite3 import connect
 from app.config import token
 
 from app.handlers import router
-from app.models.image.creatimage import valuts
 
 connectdb = connect("database.db")
 cursor = connectdb.cursor()
@@ -18,7 +17,6 @@ CREATE TABLE IF NOT EXISTS Users (
 
 
 async def main():
-    asyncio.create_task(valuts()) 
     bot = Bot(token=token)
     dp = Dispatcher()
     dp.include_router(router)
