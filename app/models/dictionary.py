@@ -125,40 +125,36 @@ def add_to_folder(data: dict, parent_index: int, item_type: str, name, value={})
 
     return data, new_index
 
+def get_folder_path(data: dict, target_index: int):
+    if target_index == "dir0": target_index=0
 
-#Тест функция
-def build_paths(data: dict):
-    #Префиксы элементов словаря
-    prefix_dir = "dir"
-    prefix_file = "text"
-    """
-    Преобразует вложенный словарь data в список путей строк.
-    parent_parts — список уже пройденных частей пути (без префиксов).
-    prefix_dir — префикс для папок (по умолчанию "dir").
-    prefix_file — префикс для файлов (по умолчанию "text").
-    
-    Возвращает список строк вида "main -> МатьДИР -> apachi22".
-    """
-    parent_parts = []
-    paths = []
-    for key, value in data.items():
-        if "_" in key:
-            kind, name = key.split("_", 1)
-        else:
-            kind, name = key, ""
-        if kind.startswith(prefix_dir):
-            new_parent = parent_parts + [ name ]
-            if isinstance(value, dict):
-                paths.extend(build_paths(value))
-            else:
-                paths.append(" -> ".join(new_parent + [ str(value) ]))
-        elif kind.startswith(prefix_file):
-            path = parent_parts + [ name ]
-            paths.append(" -> ".join(path))
-        else:
-            path = parent_parts + [ key ]
-            if isinstance(value, dict):
-                paths.extend(build_paths(value))
-            else:
-                paths.append(" -> ".join(path))
-    return paths
+    def dfs(node, path):
+        result = None
+        for key, value in node.items():
+            if key.startswith("dir") and "_" in key:
+                idx_str, name = key[3:].split("_", 1)
+                if not idx_str.isdigit():
+                    continue
+                idx = int(idx_str)
+                new_path = path + [name]
+
+                if idx == target_index:
+                    return new_path  
+
+                if isinstance(value, dict):
+                    result = dfs(value, new_path)
+                    if result is not None:
+                        return result
+
+            elif isinstance(value, dict):
+                result = dfs(value, path)
+                if result is not None:
+                    return result
+
+        return None  
+
+    return dfs(data, [])
+
+
+
+

@@ -23,7 +23,7 @@ def json_one(data, number_text):
     elif number_text.startswith("dir"): #Dir - не уникальный интендификатор, служит заглушкой, чтобы было != None
         number_text = number_text[3:]
         data = dict_func.find_index(data, number_text, "dir")
-    print(data)
+
     data_key = next(iter(data))
     data = data[data_key]
 

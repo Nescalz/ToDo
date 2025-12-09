@@ -36,14 +36,12 @@ async def cmd_start(message: Message, state: FSMContext):
 async def message(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     id_user = callback.from_user.id
+    number_text = "dir0"
+    data = loads(await db.jsons(id_user)) #Превращяем список из бд в JSON  
 
-    result = loads(await db.jsons(id_user)) #Превращяем список из бд в JSON  
+    keyb = kb.json_one(data, number_text) #Делаем кнопки по JSON разметке
 
-    keyb = kb.json_one(result, "dir0") #Делаем кнопки по JSON разметке
-
-    result = dict_func.build_paths(result)
-
-    await callback.message.edit_text(f"Ваши папки и заметки.\n{result}", reply_markup=keyb)
+    await callback.message.edit_text(f"Ваши папки и заметки.\n{" -> ".join(dict_func.get_folder_path(data, number_text))}", reply_markup=keyb)
 
 @router.callback_query(F.data.startswith("text"))
 async def message(callback: CallbackQuery, state: FSMContext):
@@ -65,7 +63,8 @@ async def message(callback: CallbackQuery, state: FSMContext):
     data = loads(await db.jsons(user_id))
     keyb = kb.json_one(data, f'dir{number_text}')
 
-    await callback.message.edit_text(f"{data}", reply_markup=keyb) 
+
+    await callback.message.edit_text(f"{" -> ".join(dict_func.get_folder_path(data, int(number_text)))}", reply_markup=keyb) 
 
 @router.callback_query(F.data.startswith("back_"))
 async def message(callback: CallbackQuery, bot: Bot):
@@ -79,7 +78,7 @@ async def message(callback: CallbackQuery, bot: Bot):
         number_text = dict_func.find_parent_index(data, number_text, "dir")
     keyb = kb.json_one(data, f"dir{number_text}")
     
-    await callback.message.edit_text(f"{data}", reply_markup=keyb)
+    await callback.message.edit_text(f"{" -> ".join(dict_func.get_folder_path(data, int(number_text)))}", reply_markup=keyb)
 
 #В код ревью стоит объеденить delete и deletedir в один слушатель
 @router.callback_query(F.data.startswith("delete_"))
@@ -106,7 +105,7 @@ async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):
     if number_type == "text":
         keyb, text = await kb.text_view(data, f"{number_text}")
     elif number_type == "dir":
-        text = ""
+        text = f"{" -> ".join(dict_func.get_folder_path(data, int(number_text)))}"
         keyb = kb.json_one(data, f'dir{number_text}')
 
     await callback.message.edit_text(text, reply_markup=keyb)
@@ -125,7 +124,7 @@ async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):
     
 
     keyb = kb.json_one(new_data, f'dir{number_text2}') #dir, потому что всегда тип прошлой структуры равен папке
-    await callback.message.edit_text("text", reply_markup=keyb) #text - заглушка
+    await callback.message.edit_text(f"{" -> ".join(dict_func.get_folder_path(data, int(number_text2)))}", reply_markup=keyb) #text - заглушка
 
 
 @router.callback_query(F.data.startswith("add_"))
@@ -161,7 +160,7 @@ async def message(message: Message, bot: Bot, state: FSMContext):
     print(data)
     data, index = dict_func.add_to_folder(data, number_text, "dir", message.text) #Сдеалть экранирование текста
     await db.new_data_reset(user_id, data)
-    await message.answer(message.text, reply_markup=kb.json_one(data, f'dir{index}')) 
+    await message.answer(f"{" -> ".join(dict_func.get_folder_path(data, int(index)))}", reply_markup=kb.json_one(data, f'dir{index}')) 
     await state.clear()
     
 @router.message(Add_text.text)
@@ -174,8 +173,8 @@ async def message(message: Message, bot: Bot, state: FSMContext):
     await state.clear()
     data, index = dict_func.add_to_folder(data, number_text, "text", data_state.get("name"), message.text)
     await db.new_data_reset(user_id, data)
-    kb.text_view(data, f'{index}')
-    await message.answer(message.text, reply_markup=kb.json_one(data, f'text{index}')) 
+    
+    await message.answer(message.text, reply_markup=kb.text_view(data, f'{index}')) 
 
 @router.callback_query(F.data.startswith("cancel_"))
 async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):
@@ -184,4 +183,4 @@ async def message(callback: CallbackQuery, bot: Bot, state: FSMContext):
     number_text = callback.data.split("_")[1]
     data = loads(await db.jsons(user_id))
     state.clear()
-    await callback.message.edit_text("Канкел", reply_markup=kb.json_one(data, number_text)) 
+    await callback.message.edit_text(f"{" -> ".join(dict_func.get_folder_path(data, int(number_text)))}", reply_markup=kb.json_one(data, number_text)) 
