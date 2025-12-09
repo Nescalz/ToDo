@@ -1,16 +1,14 @@
 from aiogram import F, Router, Bot
-from aiogram.types import Message, CallbackQuery, FSInputFile
-from aiogram.filters import CommandStart, Command
+from aiogram.types import Message, CallbackQuery
+from aiogram.filters import CommandStart
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
-from aiosqlite import connect
 
 import re
 
 from json import loads
 
 import app.keyboards as kb
-import app.config as cfg
 import app.models.database as db
 import app.models.cleasure as func_data
 

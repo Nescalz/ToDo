@@ -1,10 +1,6 @@
+#Поиск элемента по индексу
 def find_index(data: dict, index: int, prefix: str) -> dict:
-    """
-    Ищет в словаре data ключ, который начинается с prefix + индекс,
-    например prefix="dir", index=2 -> ищем ключ начинающийся с "dir2".
-    Если найден, возвращает его значение и ключ.
-    Иначе возвращает {} или None.
-    """
+
     target_prefix = f"{prefix}{index}"
     for key, value in data.items():
         if key.startswith(target_prefix):
@@ -16,6 +12,7 @@ def find_index(data: dict, index: int, prefix: str) -> dict:
                 return result
     return None
 
+#Поиск прошлого элемента по индексу
 def find_parent_index(data: dict, target_index: int, kind: str):
     target_prefix = f"{kind}{target_index}_"
     
@@ -38,6 +35,7 @@ def find_parent_index(data: dict, target_index: int, kind: str):
     
     return recurse(data)
 
+#Удаялет элемент по индексу(включая вложения в элемент)
 def remove_by_type_index(data: dict, target_index: int, target_type: str) -> dict:
     """
     Удаляет из data все ключи (на любом уровне вложенности), 
@@ -48,11 +46,9 @@ def remove_by_type_index(data: dict, target_index: int, target_type: str) -> dic
     prefix = f"{target_type}{target_index}_"
     
     for key, value in data.items():
-        # если ключ с нужным префиксом — пропускаем
         if key.startswith(prefix):
             continue
 
-        # если значение — dict, рекурсивно очищаем
         if isinstance(value, dict):
             result[key] = remove_by_type_index(value, target_index, target_type)
         else:
@@ -60,20 +56,7 @@ def remove_by_type_index(data: dict, target_index: int, target_type: str) -> dic
 
     return result
 
-
-
-
-def make_unique_key(existing_keys, prefix: str):
-    """
-    Сгенерировать ключ вида prefix + уникальное число, которого нет в existing_keys.
-    """
-    i = 0
-    while True:
-        key = f"{prefix}{i}"
-        if key not in existing_keys:
-            return key
-        i += 1
-
+#Поиск папки для добавления в нее элемента
 def find_folder_dict(data: dict, target_index: int):
     target_prefix = f"{target_index}"
     print(target_prefix)
@@ -90,10 +73,9 @@ def find_folder_dict(data: dict, target_index: int):
     
     return recurse(data)
 
-
-
+#Поиск занятых индексов и добавление в множество
 def get_used_dir_indexes(node: dict, type):
-    """Рекурсивно собирает все индексы, которые уже заняты в ключах dirX_."""
+
     used = set()
     for key, val in node.items():
         if key.startswith(type):
@@ -105,7 +87,7 @@ def get_used_dir_indexes(node: dict, type):
         if isinstance(val, dict):
             used.update(get_used_dir_indexes(val, type))
     return used
-
+#Добовление элемента
 def add_to_folder(data: dict, parent_index: int, item_type: str, name, value={}):
     parent = find_folder_dict(data, parent_index)
     if parent is None:
@@ -125,6 +107,7 @@ def add_to_folder(data: dict, parent_index: int, item_type: str, name, value={})
 
     return data, new_index
 
+#Система цепочки файлов(Хлебные крошки)
 def get_folder_path(data: dict, target_index: int):
     if target_index == "dir0": target_index=0
 
